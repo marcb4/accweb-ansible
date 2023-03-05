@@ -1,6 +1,6 @@
 ---
 
-# start with 
+# start with
 # `ansible-playbook stop_all.yml`
 
 - name: Stop all servers

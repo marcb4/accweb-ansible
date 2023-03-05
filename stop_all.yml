@@ -1,0 +1,75 @@
+---
+
+# start with 
+# `ansible-playbook stop_all.yml`
+
+- name: Stop all servers
+  hosts: acc
+  gather_facts: false
+
+  tasks:
+
+    - name: Get JWT
+      ansible.builtin.uri:
+        url: https://your_accweb_url/api/login
+        body:
+          password: "XXX"
+        body_format: json
+        method: POST
+      register: response
+
+    - name: DEBUG response
+      ansible.builtin.debug:
+        msg: "{{ response.json.token }}"
+
+    - name: Get all servers
+      ansible.builtin.uri:
+        url: https://your_accweb_url/api/servers
+        method: GET
+        headers:
+          Authorization: "Bearer {{ response.json.token }}"
+      register: servers_response
+
+    - name: DEBUG response
+      ansible.builtin.debug:
+        msg: "{{ servers_response }}"
+
+    - name: DEBUG loop
+      ansible.builtin.debug:
+        msg: "{{ item.id }}"
+      loop: "{{ servers_response.json }}"
+
+    - name: Kill all Servers
+      ansible.builtin.uri:
+        url: https://your_accweb_url/api/servers/stop-all
+        method: POST
+        headers:
+          Authorization: "Bearer {{ response.json.token }}"
+      register: stopped_servers
+
+    - name: Get all pids from accserver
+      community.general.pids:
+        pattern: (accServer)
+      register: pids_from_accserver
+
+    - name: DEBUG pids_from_accserver
+      ansible.builtin.debug:
+        msg: "{{ pids_from_accserver.pids }}"
+
+    - name: Kill all running processes
+      ansible.builtin.command: kill -9 "{{ item }}"
+      register: kill_pids
+      changed_when: kill_pids != 0
+      loop: "{{ pids_from_accserver.pids }}"
+
+    - name: Pause for 10 secs
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Start all instances again
+      ansible.builtin.uri:
+        url: "https://your_accweb_url/api/instance/{{ item.id }}/start"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ response.json.token }}"
+      loop: "{{ servers_response.json }}"

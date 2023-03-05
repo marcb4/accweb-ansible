@@ -3,9 +3,12 @@
 # start with
 # `ansible-playbook stop_all.yml`
 
+# tested on Ubuntu 18.04
+
 - name: Stop all servers
   hosts: acc
   gather_facts: false
+  become: true
 
   tasks:
 

@@ -12,6 +12,9 @@
 
   tasks:
 
+    - name: Include vars
+      ansible.builtin.include_vars: vars.yml
+
     - name: Get JWT
       ansible.builtin.uri:
         url: "https://{{ accweb_host }}/api/login"

@@ -14,9 +14,9 @@
 
     - name: Get JWT
       ansible.builtin.uri:
-        url: https://your_accweb_url/api/login
+        url: "https://{{ accweb_host }}/api/login"
         body:
-          password: "XXX"
+          password: "{{ accweb_password }}"
         body_format: json
         method: POST
       register: response
@@ -27,7 +27,7 @@
 
     - name: Get all servers
       ansible.builtin.uri:
-        url: https://your_accweb_url/api/servers
+        url: https://{{ accweb_host }}/api/servers
         method: GET
         headers:
           Authorization: "Bearer {{ response.json.token }}"
@@ -44,7 +44,7 @@
 
     - name: Kill all Servers
       ansible.builtin.uri:
-        url: https://your_accweb_url/api/servers/stop-all
+        url: https://{{ accweb_host }}/api/servers/stop-all
         method: POST
         headers:
           Authorization: "Bearer {{ response.json.token }}"
@@ -71,7 +71,7 @@
 
     - name: Start all instances again
       ansible.builtin.uri:
-        url: "https://your_accweb_url/api/instance/{{ item.id }}/start"
+        url: "https://{{ accweb_host }}/api/instance/{{ item.id }}/start"
         method: POST
         headers:
           Authorization: "Bearer {{ response.json.token }}"
